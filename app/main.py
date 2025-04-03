@@ -1,9 +1,10 @@
 from fastapi import FastAPI
 import firebase_admin
 from firebase_admin import credentials, firestore
+from pydantic import BaseModel
 
 # Inicializar Firebase
-cred = credentials.Certificate("firebase_credentials.json")
+cred = credentials.Certificate("app/firebase_credentials.json")
 firebase_admin.initialize_app(cred)
 db = firestore.client()
 
