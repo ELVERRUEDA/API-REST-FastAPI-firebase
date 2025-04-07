@@ -1,6 +1,8 @@
 from pydantic import BaseModel
+from typing import Optional
 
-class User(BaseModel):
-    id: str
-    name: str
-    email: str
+class Task(BaseModel):
+    id: Optional[str] = None
+    title: str
+    description: Optional[str] = None
+    done: bool = False
