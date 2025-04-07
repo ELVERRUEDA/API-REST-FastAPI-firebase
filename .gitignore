@@ -173,6 +173,6 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
-firebase_credentials.json
+app/firebase_credentials.json
 cbb9413 (Primer commit: subiendo el proyecto)
 venv/
