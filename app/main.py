@@ -1,10 +1,10 @@
 from fastapi import FastAPI
-from app.routes import router
+from app import routes
 
 app = FastAPI()
 
-app.include_router(router)
+app.include_router(routes.router)
 
 @app.get("/")
-def read_root():
-    return {"message": "API REST de tareas con FastAPI y Firebase"}
+def home():
+    return {"mensaje": "Bienvenido a la API de tareas con FastAPI y Firebase"}

@@ -1,35 +1,35 @@
 from fastapi import APIRouter, HTTPException
 from app.models import Task
 from app.database import db
+from uuid import uuid4
 
 router = APIRouter()
 
-# Crear tarea
-@router.post("/tasks/")
-def create_task(task: Task):
-    doc_ref = db.collection("tasks").add(task.dict())
-    return {"message": "Tarea creada correctamente"}
+@router.post("/tareas/")
+def crear_tarea(tarea: Task):
+    tarea_id = str(uuid4())
+    db.collection("tareas").document(tarea_id).set(tarea.dict())
+    return {"id": tarea_id, "mensaje": "Tarea creada correctamente"}
 
-# Obtener tareas
-@router.get("/tasks/")
-def get_tasks():
-    tasks = [{doc.id: doc.to_dict()} for doc in db.collection("tasks").stream()]
-    return {"tasks": tasks}
+@router.get("/tareas/")
+def listar_tareas():
+    tareas = db.collection("tareas").stream()
+    return [{tarea.id: tarea.to_dict()} for tarea in tareas]
 
-# Actualizar tarea
-@router.put("/tasks/{task_id}")
-def update_task(task_id: str, task: Task):
-    task_ref = db.collection("tasks").document(task_id)
-    if not task_ref.get().exists:
+@router.get("/tareas/{tarea_id}")
+def obtener_tarea(tarea_id: str):
+    doc = db.collection("tareas").document(tarea_id).get()
+    if doc.exists:
+        return doc.to_dict()
+    else:
         raise HTTPException(status_code=404, detail="Tarea no encontrada")
-    task_ref.update(task.dict())
-    return {"message": "Tarea actualizada"}
 
-# Eliminar tarea
-@router.delete("/tasks/{task_id}")
-def delete_task(task_id: str):
-    task_ref = db.collection("tasks").document(task_id)
-    if not task_ref.get().exists:
-        raise HTTPException(status_code=404, detail="Tarea no encontrada")
-    task_ref.delete()
-    return {"message": "Tarea eliminada"}
+@router.put("/tareas/{tarea_id}")
+def actualizar_tarea(tarea_id: str, tarea: Task):
+    db.collection("tareas").document(tarea_id).set(tarea.dict())
+    return {"mensaje": "Tarea actualizada correctamente"}
+
+@router.delete("/tareas/{tarea_id}")
+def eliminar_tarea(tarea_id: str):
+    db.collection("tareas").document(tarea_id).delete()
+    return {"mensaje": "Tarea eliminada correctamente"}
