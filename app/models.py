@@ -5,3 +5,4 @@ class Task(BaseModel):
     titulo: str
     descripcion: Optional[str] = None
     completada: bool = False
+    hora: str

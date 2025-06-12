@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException
 from app.models import Task
 from app.database import db
 from uuid import uuid4
+from fastapi import Body
 
 router = APIRouter()
 
@@ -35,3 +36,14 @@ def actualizar_tarea(tarea_id: str, tarea: Task):
 def eliminar_tarea(tarea_id: str):
     db.collection("tareas").document(tarea_id).delete()
     return {"mensaje": "Tarea eliminada correctamente"}
+
+@router.patch("/tareas/{tarea_id}/completado")
+def marcar_como_completado(tarea_id: str, completado: bool = Body(...)):
+    doc_ref = db.collection("tareas").document(tarea_id)
+    doc = doc_ref.get()
+
+    if not doc.exists:
+        raise HTTPException(status_code=404, detail="Tarea no encontrada")
+
+    doc_ref.update({"completado": completado})
+    return {"mensaje": f"Tarea actualizada: completado = {completado}"}
