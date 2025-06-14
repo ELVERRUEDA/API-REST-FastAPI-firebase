@@ -1,49 +1,49 @@
 from fastapi import APIRouter, HTTPException
-from app.models import Task
+from app.models import Tarea
 from app.database import db
 from uuid import uuid4
 from fastapi import Body
+from app.models import EstadoCompletado
 
 router = APIRouter()
 
-
-
-@router.post("/tareas/")
-def crear_tarea(tarea: Task):
-    tarea_id = str(uuid4())
-    db.collection("tareas").document(tarea_id).set(tarea.dict())
-    return {"id": tarea_id, "mensaje": "Tarea creada correctamente"}
-
+# Obtener todas las tareas
 @router.get("/tareas/")
-def listar_tareas():
-    tareas = db.collection("tareas").stream()
-    return [{tarea.id: tarea.to_dict()} for tarea in tareas]
+def obtener_tareas():
+    tareas_ref = db.collection("tareas").stream()
+    tareas = [{tarea.id: tarea.to_dict()} for tarea in tareas_ref]
+    return tareas
 
-@router.get("/tareas/{tarea_id}")
-def obtener_tarea(tarea_id: str):
-    doc = db.collection("tareas").document(tarea_id).get()
-    if doc.exists:
-        return doc.to_dict()
-    else:
-        raise HTTPException(status_code=404, detail="Tarea no encontrada")
+# Crear una nueva tarea
+@router.post("/tareas/")
+def crear_tarea(tarea: Tarea):
+    nueva_tarea_ref = db.collection("tareas").document()
+    nueva_tarea_ref.set(tarea.dict())
+    return {"id": nueva_tarea_ref.id, **tarea.dict()}
 
-@router.put("/tareas/{tarea_id}")
-def actualizar_tarea(tarea_id: str, tarea: Task):
-    db.collection("tareas").document(tarea_id).set(tarea.dict())
-    return {"mensaje": "Tarea actualizada correctamente"}
-
+# Eliminar una tarea por ID
 @router.delete("/tareas/{tarea_id}")
 def eliminar_tarea(tarea_id: str):
-    db.collection("tareas").document(tarea_id).delete()
+    tarea_ref = db.collection("tareas").document(tarea_id)
+    if not tarea_ref.get().exists:
+        raise HTTPException(status_code=404, detail="Tarea no encontrada")
+    tarea_ref.delete()
     return {"mensaje": "Tarea eliminada correctamente"}
 
-@router.patch("/tareas/{tarea_id}/completado")
-def marcar_como_completado(tarea_id: str, completado: bool = Body(...)):
-    doc_ref = db.collection("tareas").document(tarea_id)
-    doc = doc_ref.get()
-
-    if not doc.exists:
+# Editar una tarea por ID
+@router.put("/tareas/{tarea_id}")
+def editar_tarea(tarea_id: str, tarea: Tarea):
+    tarea_ref = db.collection("tareas").document(tarea_id)
+    if not tarea_ref.get().exists:
         raise HTTPException(status_code=404, detail="Tarea no encontrada")
+    tarea_ref.update(tarea.dict())
+    return {"mensaje": "Tarea actualizada correctamente"}
 
-    doc_ref.update({"completado": completado})
-    return {"mensaje": f"Tarea actualizada: completado = {completado}"}
+# Marcar tarea como completada/incompleta
+@router.patch("/tareas/{tarea_id}/completado")
+def actualizar_estado_completado(tarea_id: str, estado: EstadoCompletado):
+    tarea_ref = db.collection("tareas").document(tarea_id)
+    if not tarea_ref.get().exists:
+        raise HTTPException(status_code=404, detail="Tarea no encontrada")
+    tarea_ref.update({"completado": estado.completado})
+    return {"mensaje": f"Tarea actualizada: completado = {estado.completado}"}

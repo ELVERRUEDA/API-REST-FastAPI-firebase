@@ -1,8 +1,10 @@
 from pydantic import BaseModel
 from typing import Optional
 
-class Task(BaseModel):
+class Tarea(BaseModel):
     titulo: str
-    descripcion: Optional[str] = None
-    completada: bool = False
-    hora: str
+    descripcion: Optional[str] = ""
+    hora: Optional[str] = ""
+
+class EstadoCompletado(BaseModel):
+    completado: bool
